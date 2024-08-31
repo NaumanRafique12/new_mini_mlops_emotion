@@ -42,39 +42,46 @@ def load_data(file_path: str) -> pd.DataFrame:
 def prepare_data(df: pd.DataFrame) -> tuple:
     """Prepare the feature matrix and target vector from the DataFrame."""
     try:
-        X = df.iloc[:, :-1].values
-        y = df.iloc[:, -1].values
+        X = df.drop("label",axis=1)
+        y = df['label']
         logging.info("Data prepared successfully.")
         return X, y
     except Exception as e:
         logging.error(f"Failed to prepare data: {e}")
         raise
 
-def evaluate_model(model, X_test: np.ndarray, y_test: np.ndarray) -> dict:
+def evaluate_model(model, X_test:  pd.DataFrame, y_test:  pd.DataFrame) -> dict:
     
     """Evaluate the model and return performance metrics."""
     try:
+        print("First")
         y_pred = model.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred)
         recall = recall_score(y_test, y_pred)
+        
         mlflow.set_experiment(experiment_name="LR in Pipeline")
         with mlflow.start_run(run_name="all_artifacts_file_model_png"):
- 
+            print("before1")
+            
             # Evaluate the model
             accuracy = accuracy_score(y_test, y_pred)
             conf_matrix = confusion_matrix(y_test, y_pred)
             class_report = classification_report(y_test, y_pred)
             mlflow.set_tag("author","Noman")
-            mlflow.set_tag("C=1","LR")
-            mlflow.set_tag("solver=","liblinear")
-            mlflow.set_tag("penalty",'l2')
-            mlflow.log_artifact(__file__)
+            mlflow.set_tag("C","LR")
+            mlflow.set_tag("solver","liblinear")
+            mlflow.set_tag("penalty","l2")
+            mlflow.log_artifacts(__file__)
+            print("before2")
+            
             signature = infer_signature(X_test, y_test)
             mlflow.sklearn.log_model(model,"Logistic Regression",signature=signature)
             X_test['output']=y_test
             data = mlflow.data.from_pandas(X_test)
             mlflow.log_input(data,"Testing Dataset")
+            print("before3")
+            
             plt.figure(figsize=(8, 6))
             sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=X_test.columns, yticklabels=X_test.columns)
             plt.title("Confusion Matrix")
@@ -84,14 +91,20 @@ def evaluate_model(model, X_test: np.ndarray, y_test: np.ndarray) -> dict:
             # Save the plot as an image file
             plt.savefig("confusion_matrix.png")
             mlflow.log_artifact("confusion_matrix.png")
+            print("second")
+            
+        print("before")
 
         metrics = {
             'accuracy': accuracy,
             'precision': precision,
             'recall': recall
         }
+        print("before")
+        
         logging.info("Model evaluation metrics calculated successfully.")
         return metrics
+    
     except Exception as e:
         logging.error(f"Failed to evaluate the model: {e}")
         raise

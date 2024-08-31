@@ -1,0 +1,94 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python src/datafile/data_ingestion.py
+    deps:
+    - path: src/datafile/data_ingestion.py
+      hash: md5
+      md5: 0c2d57eed32653f00e8e0d420aace98f
+      size: 3110
+    outs:
+    - path: data/external
+      hash: md5
+      md5: 99e044f0c7bbcb63eaa2ed060e0fe020.dir
+      size: 827954
+      nfiles: 1
+  data_splitting:
+    cmd: python src/datafile/data_splitting.py
+    deps:
+    - path: data/external
+      hash: md5
+      md5: 99e044f0c7bbcb63eaa2ed060e0fe020.dir
+      size: 827954
+      nfiles: 1
+    - path: src/datafile/data_splitting.py
+      hash: md5
+      md5: 484b31b123fbd49f0e296047805841fc
+      size: 2844
+    params:
+      params.yaml:
+        data_splitting.test_size: 0.05
+    outs:
+    - path: data/raw
+      hash: md5
+      md5: 23ee9b50f05bc7b5d6f4f58cd95e9cd6.dir
+      size: 827973
+      nfiles: 2
+  data_preprocessing:
+    cmd: python src/datafile/data_preprocessing.py
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: 23ee9b50f05bc7b5d6f4f58cd95e9cd6.dir
+      size: 827973
+      nfiles: 2
+    - path: src/datafile/data_ingestion.py
+      hash: md5
+      md5: 0c2d57eed32653f00e8e0d420aace98f
+      size: 3110
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: 0274ec203299bf052a0d9ae6ed6d62dc.dir
+      size: 567114
+      nfiles: 2
+  feature_engineering:
+    cmd: python src/features/feature_engineering.py
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 0274ec203299bf052a0d9ae6ed6d62dc.dir
+      size: 567114
+      nfiles: 2
+    - path: src/features/feature_engineering.py
+      hash: md5
+      md5: fda6aab72f5dd6c346f2d18deff2f25c
+      size: 3856
+    outs:
+    - path: data/features
+      hash: md5
+      md5: 8d1d2c5189575bf3b20955df27d04d39.dir
+      size: 484730
+      nfiles: 2
+  model_building:
+    cmd: python src/model/model_building.py
+    deps:
+    - path: data/features
+      hash: md5
+      md5: 8d1d2c5189575bf3b20955df27d04d39.dir
+      size: 484730
+      nfiles: 2
+    - path: src/model/model_building.py
+      hash: md5
+      md5: cbaf9353818d40ade293c89be019be6b
+      size: 3285
+    params:
+      params.yaml:
+        model_building.learning_rate: 0.001
+        model_building.n_estimators: 6
+    outs:
+    - path: model
+      hash: md5
+      md5: ff77aebe2611823892bd0b6f9b3ff266.dir
+      size: 791
+      nfiles: 1
