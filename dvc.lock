@@ -85,10 +85,28 @@ stages:
     params:
       params.yaml:
         model_building.learning_rate: 0.001
-        model_building.n_estimators: 6
+        model_building.n_estimators: 5
     outs:
     - path: model
       hash: md5
       md5: ff77aebe2611823892bd0b6f9b3ff266.dir
       size: 791
+      nfiles: 1
+  model_evaluation:
+    cmd: python src/model/model_evaluation.py
+    deps:
+    - path: model
+      hash: md5
+      md5: ff77aebe2611823892bd0b6f9b3ff266.dir
+      size: 791
+      nfiles: 1
+    - path: src/model/model_evaluation.py
+      hash: md5
+      md5: 98d2116f39ae25d8fb8ac94a05c21f09
+      size: 5585
+    outs:
+    - path: metrics
+      hash: md5
+      md5: b4533376dae50b2c25947fac94c97e73.dir
+      size: 114
       nfiles: 1

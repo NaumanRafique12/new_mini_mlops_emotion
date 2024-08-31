@@ -50,6 +50,19 @@ def prepare_data(df: pd.DataFrame) -> tuple:
         logging.error(f"Failed to prepare data: {e}")
         raise
 
+
+def save_model_info(run_id: str, model_path: str, file_path: str) -> None:
+    """Save the model run ID and path to a JSON file."""
+    try:
+        model_info = {'run_id': run_id, 'model_path': model_path}
+        with open(file_path, 'w') as file:
+            json.dump(model_info, file, indent=4)
+        logger.debug('Model info saved to %s', file_path)
+    except Exception as e:
+        logger.error('Error occurred while saving the model info: %s', e)
+        raise
+    
+    
 def evaluate_model(model, X_test:  pd.DataFrame, y_test:  pd.DataFrame) -> dict:
     
     """Evaluate the model and return performance metrics."""
@@ -61,10 +74,8 @@ def evaluate_model(model, X_test:  pd.DataFrame, y_test:  pd.DataFrame) -> dict:
         recall = recall_score(y_test, y_pred)
         
         mlflow.set_experiment(experiment_name="LR in Pipeline")
-        with mlflow.start_run(run_name="all_artifacts_file_model_png"):
-            print("before1")
-            
-            # Evaluate the model
+        with mlflow.start_run(run_name="all_artifacts_file_model_png") as run:
+             # Evaluate the model
             accuracy = accuracy_score(y_test, y_pred)
             conf_matrix = confusion_matrix(y_test, y_pred)
             class_report = classification_report(y_test, y_pred)
@@ -73,13 +84,15 @@ def evaluate_model(model, X_test:  pd.DataFrame, y_test:  pd.DataFrame) -> dict:
             mlflow.set_tag("solver","liblinear")
             mlflow.set_tag("penalty","l2")
             mlflow.log_artifacts(__file__)
-            print("before2")
             
             signature = infer_signature(X_test, y_test)
             mlflow.sklearn.log_model(model,"Logistic Regression",signature=signature)
             X_test['output']=y_test
             data = mlflow.data.from_pandas(X_test)
             mlflow.log_input(data,"Testing Dataset")
+            mlflow.log_metrics({"accuracy":accuracy,"recall":recall,"precision":precision})
+            mlflow.log_params({"C":1,"solver":"liblinear","penalty":"l2"})
+            
             print("before3")
             
             plt.figure(figsize=(8, 6))
@@ -92,16 +105,13 @@ def evaluate_model(model, X_test:  pd.DataFrame, y_test:  pd.DataFrame) -> dict:
             plt.savefig("confusion_matrix.png")
             mlflow.log_artifact("confusion_matrix.png")
             print("second")
-            
-        print("before")
-
         metrics = {
-            'accuracy': accuracy,
-            'precision': precision,
-            'recall': recall
-        }
-        print("before")
-        
+                'accuracy': accuracy,
+                'precision': precision,
+                'recall': recall
+            }
+      
+        save_model_info(run.info.run_id, "model", 'reports/experiment_info.json')
         logging.info("Model evaluation metrics calculated successfully.")
         return metrics
     
