@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
 import numpy as np
-
+from sklearn.linear_model import LogisticRegression
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -44,7 +44,7 @@ def prepare_data(df: pd.DataFrame) -> tuple:
 def train_model(X_train: np.ndarray, y_train: np.ndarray, params: dict) -> GradientBoostingClassifier:
     """Train a Gradient Boosting Classifier."""
     try:
-        clf = GradientBoostingClassifier(n_estimators=params['n_estimators'], learning_rate=params['learning_rate'])
+        clf = LogisticRegression(C=1, solver='liblinear', penalty='l2')
         clf.fit(X_train, y_train)
         logging.info("Model trained successfully.")
         return clf

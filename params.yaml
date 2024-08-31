@@ -1,0 +1,9 @@
+data_splitting:
+  test_size: 0.05
+
+feature_engineering:
+  max_features: 10
+
+model_building:
+  learning_rate: 0.001
+  n_estimators: 6

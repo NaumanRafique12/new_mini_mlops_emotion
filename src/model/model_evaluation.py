@@ -4,9 +4,19 @@ import json
 import logging
 import pandas as pd
 from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from mlflow.models.signature import infer_signature
+
 import numpy as np
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+import mlflow
+import seaborn as sns
+import matplotlib.pyplot as plt 
+import dagshub
+dagshub.init(repo_owner='NaumanRafique12', repo_name='mini-mlops-Project', mlflow=True)
+mlflow.set_tracking_uri('https://dagshub.com/NaumanRafique12/mini-mlops-Project.mlflow')
+
 
 def load_model(model_path: str):
     """Load the trained model from a file."""
@@ -41,21 +51,44 @@ def prepare_data(df: pd.DataFrame) -> tuple:
         raise
 
 def evaluate_model(model, X_test: np.ndarray, y_test: np.ndarray) -> dict:
+    
     """Evaluate the model and return performance metrics."""
     try:
         y_pred = model.predict(X_test)
-        y_pred_proba = model.predict_proba(X_test)[:, 1]
-        
         accuracy = accuracy_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred)
         recall = recall_score(y_test, y_pred)
-        auc = roc_auc_score(y_test, y_pred_proba)
-        
+        mlflow.set_experiment(experiment_name="LR in Pipeline")
+        with mlflow.start_run(run_name="all_artifacts_file_model_png"):
+ 
+            # Evaluate the model
+            accuracy = accuracy_score(y_test, y_pred)
+            conf_matrix = confusion_matrix(y_test, y_pred)
+            class_report = classification_report(y_test, y_pred)
+            mlflow.set_tag("author","Noman")
+            mlflow.set_tag("C=1","LR")
+            mlflow.set_tag("solver=","liblinear")
+            mlflow.set_tag("penalty",'l2')
+            mlflow.log_artifact(__file__)
+            signature = infer_signature(X_test, y_test)
+            mlflow.sklearn.log_model(model,"Logistic Regression",signature=signature)
+            X_test['output']=y_test
+            data = mlflow.data.from_pandas(X_test)
+            mlflow.log_input(data,"Testing Dataset")
+            plt.figure(figsize=(8, 6))
+            sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=X_test.columns, yticklabels=X_test.columns)
+            plt.title("Confusion Matrix")
+            plt.xlabel("Predicted Label")
+            plt.ylabel("True Label")
+
+            # Save the plot as an image file
+            plt.savefig("confusion_matrix.png")
+            mlflow.log_artifact("confusion_matrix.png")
+
         metrics = {
             'accuracy': accuracy,
             'precision': precision,
-            'recall': recall,
-            'auc': auc
+            'recall': recall
         }
         logging.info("Model evaluation metrics calculated successfully.")
         return metrics
