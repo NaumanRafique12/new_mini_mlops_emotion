@@ -85,10 +85,10 @@ def main():
     clf = train_model(X_train, y_train, params['model_building'])
     
     # Create directory for saving the model
-    create_directory("model")
+    create_directory("models")
     
     # Save the trained model
-    save_model(clf, os.path.join("model", 'model.pkl'))
+    save_model(clf, os.path.join("models", 'model.pkl'))
 
 if __name__ == "__main__":
     try:

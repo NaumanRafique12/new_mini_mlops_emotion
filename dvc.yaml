@@ -29,6 +29,8 @@ stages:
      
       outs:
       - data/features
+      - models/vectorizer.pkl
+
     model_building:
       cmd: python src/model/model_building.py
       deps:
@@ -38,14 +40,14 @@ stages:
       - model_building.learning_rate
       - model_building.n_estimators
       outs:
-      - model
+      - models/model.pkl
     model_evaluation:
       cmd: python src/model/model_evaluation.py
       deps:
-      - model
+      - models
       - src/model/model_evaluation.py
       outs:
-      - metrics
+      - reports/experiment_info.json
     register_model:
       cmd: python src/model/register_model.py
       deps:

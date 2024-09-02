@@ -17,6 +17,21 @@ import dagshub
 dagshub.init(repo_owner='NaumanRafique12', repo_name='mini-mlops-Project', mlflow=True)
 mlflow.set_tracking_uri('https://dagshub.com/NaumanRafique12/mini-mlops-Project.mlflow')
 
+# logging configuration
+logger = logging.getLogger('model_evaluation')
+logger.setLevel('DEBUG')
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel('DEBUG')
+
+file_handler = logging.FileHandler('model_evaluation_errors.log')
+file_handler.setLevel('ERROR')
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
 
 def load_model(model_path: str):
     """Load the trained model from a file."""
@@ -140,7 +155,7 @@ def create_directory(directory_path: str):
 
 def main():
     # Load the model
-    model = load_model('./model/model.pkl')
+    model = load_model('./models/model.pkl')
     
     # Load the test data
     test_data = load_data('./data/features/test_tfidf.csv')
