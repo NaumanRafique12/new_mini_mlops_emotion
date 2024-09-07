@@ -33,8 +33,8 @@ def load_data(file_path: str) -> pd.DataFrame:
 def prepare_data(df: pd.DataFrame) -> tuple:
     """Prepare the feature matrix and target vector from the DataFrame."""
     try:
-        X = df.iloc[:, :-1].values
-        y = df.iloc[:, -1].values
+        X = df.iloc[:, :-1]
+        y = df.iloc[:, -1]
         logging.info("Data prepared successfully.")
         return X, y
     except Exception as e:
