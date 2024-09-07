@@ -4,6 +4,8 @@ from preprocessing_utility import normalize_text
 import dagshub
 import pickle
 import pandas as pd
+import json
+import os
 from mlflow.tracking import MlflowClient
 # dagshub.init(repo_owner='NaumanRafique12', repo_name='mini-mlops-Project', mlflow=True)
 # mlflow.set_tracking_uri('https://dagshub.com/NaumanRafique12/mini-mlops-Project.mlflow')
@@ -21,11 +23,21 @@ def get_latest_model_version(model_name):
     return latest_version[0].version if latest_version else None
 
 
+# Step 1: Read the JSON file
+json_file_path = os.path.join(os.path.dirname(__file__), '..', 'reports', 'versions.json')
+model_name = "my_model"
+# Reading the JSON file
+with open(json_file_path, "r") as f:
+    data = json.load(f)
+run_id = data.get(str(get_latest_model_version(model_name)))
+
+# Step 2: Get the value of 'V1' (assuming it contains the dataset path)
 
 vectorizer = pickle.load(open('models/vectorizer.pkl','rb'))
 # model = pickle.load(open(r"C:\Users\VU360solutions\Desktop\mlops\mini-mlops-project\models\model.pkl",'rb'))
 
-logged_model = 'runs:/9d2ae11f5f9a42bfa47e12cebd10eab7/Logistic Regression'
+# logged_model = 'runs:/9d2ae11f5f9a42bfa47e12cebd10eab7/Logistic Regression'
+logged_model = f'runs:/{run_id}/Logistic Regression'
 
 # Load model as a PyFuncModel.
 model = mlflow.pyfunc.load_model(logged_model)

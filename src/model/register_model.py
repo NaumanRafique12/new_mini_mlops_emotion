@@ -26,6 +26,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
+
 def load_model_info(file_path: str) -> dict:
     """Load the model info from a JSON file."""
     try:
@@ -39,6 +40,35 @@ def load_model_info(file_path: str) -> dict:
     except Exception as e:
         logger.error('Unexpected error occurred while loading the model info: %s', e)
         raise
+# Adding the versions code 
+import json
+import os
+
+# Function to read the JSON file
+def read_json(file_path):
+    # Check if the file exists and is not empty
+    if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+        with open(file_path, "r") as f:
+            data = json.load(f)
+    else:
+        # If the file doesn't exist or is empty, return an empty dictionary
+        data = {}
+    return data
+
+# Function to add a new record to the dictionary and save it
+def add_record(file_path, key, value):
+    # Read the current data
+    data = read_json(file_path)
+    
+    # Add the new record
+    data[key] = value
+    
+    # Save the updated data back to the file
+    with open(file_path, "w") as f:
+        json.dump(data, f, indent=4)
+    
+    print(f"Record added: {key}: {value}")
+
 
 def register_model(model_name: str, model_info: dict):
     """Register the model to the MLflow Model Registry."""
@@ -55,8 +85,17 @@ def register_model(model_name: str, model_info: dict):
             version=model_version.version,
             stage="Production"
         )
+        
+        # Path to your JSON file
+        #  = r"../../reports/versions.json"
+        file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'reports', 'versions.json')
 
+
+        # Add a new record (Example: V3: id3)
+        add_record(file_path, model_version.version, model_info['run_id'])
+        
         logger.debug(f'Model {model_name} version {model_version.version} registered and transitioned to Staging.')
+        
     except Exception as e:
         logger.error('Error during model registration: %s', e)
         raise
