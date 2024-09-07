@@ -90,9 +90,14 @@ def evaluate_model(model, X_test:  pd.DataFrame, y_test:  pd.DataFrame) -> dict:
         accuracy = accuracy_score(y_test, y_pred)
         precision = precision_score(y_test, y_pred)
         recall = recall_score(y_test, y_pred)
+        print("First2")
         
-        mlflow.set_experiment(experiment_name="LR in Pipeline")
+        mlflow.set_experiment(experiment_name="LR in the Pipeline")
+        print("First2")
+        
         with mlflow.start_run(run_name="all_artifacts_file_model_png") as run:
+            print("First2")
+            
              # Evaluate the model
             accuracy = accuracy_score(y_test, y_pred)
             conf_matrix = confusion_matrix(y_test, y_pred)
@@ -102,7 +107,8 @@ def evaluate_model(model, X_test:  pd.DataFrame, y_test:  pd.DataFrame) -> dict:
             mlflow.set_tag("solver","liblinear")
             mlflow.set_tag("penalty","l2")
             mlflow.log_artifacts(__file__)
-            
+            print("First3")
+
             signature = infer_signature(X_test, y_test)
             mlflow.sklearn.log_model(model,"Logistic Regression",signature=signature)
             X_test['output']=y_test
